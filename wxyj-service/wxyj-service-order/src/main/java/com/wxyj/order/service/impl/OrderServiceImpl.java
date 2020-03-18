@@ -2,12 +2,14 @@ package com.wxyj.order.service.impl;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.wxyj.goods.feign.SkuFeign;
 import com.wxyj.order.dao.OrderItemMapper;
 import com.wxyj.order.dao.OrderMapper;
 import com.wxyj.order.pojo.Order;
 import com.wxyj.order.pojo.OrderItem;
 import com.wxyj.order.service.CartService;
 import com.wxyj.order.service.OrderService;
+import com.wxyj.user.feign.UserFeign;
 import entity.IdWorker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -15,8 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import tk.mybatis.mapper.entity.Example;
 
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /****
  * @Author:admin
@@ -40,6 +41,12 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    @Autowired
+    private SkuFeign skuFeign;
+
+    @Autowired
+    private UserFeign userFeign;
+
     /***
      * 添加订单
      * @param order
@@ -48,12 +55,23 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public void add(Order order) {
         //查询出用户的所有购物车
-        List<OrderItem> orderItems = cartService.list(order.getUsername());
+//        List<OrderItem> orderItems = cartService.list(order.getUsername());
+         List<OrderItem> orderItems = new ArrayList<OrderItem>();
 
+        //获取勾选的商品ID，需要下单的商品，将要下单的商品的ID信息从购物车中移除
+        for (Long skuId : order.getSkuIds())
+        {
+            orderItems.add((OrderItem) redisTemplate.boundHashOps("Cart_"+order.getUsername()).get(skuId));
+            redisTemplate.boundHashOps("Cart_" + order.getUsername()).delete(skuId);
+        }
         //统计计算
         int totalMoney = 0;
         int totalPayMoney=0;
         int num = 0;
+
+        //封装Map<Long,Integer> 封装递减数据
+        Map<String,Integer> decrmap = new HashMap<String, Integer>();
+
         for (OrderItem orderItem : orderItems) {
             //总金额
             totalMoney+=orderItem.getMoney();
@@ -62,6 +80,8 @@ public class OrderServiceImpl implements OrderService {
             totalPayMoney+=orderItem.getPayMoney();
             //总数量
             num+=orderItem.getNum();
+
+            decrmap.put(orderItem.getSkuId().toString(),orderItem.getNum());
         }
         order.setTotalNum(num);
         order.setTotalMoney(totalMoney);
@@ -86,9 +106,15 @@ public class OrderServiceImpl implements OrderService {
             orderItem.setOrderId(order.getId());
             orderItemMapper.insertSelective(orderItem);
         }
+        //库存递减
+        skuFeign.decrCount(decrmap);
 
-        //清除Redis缓存购物车数据
-        redisTemplate.delete("Cart_"+order.getUsername());
+        //用户添加积分活跃度加1
+        userFeign.addPoints(1);
+
+
+
+
 //        return count;
     }
 

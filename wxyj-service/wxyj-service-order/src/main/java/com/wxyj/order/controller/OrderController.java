@@ -1,6 +1,7 @@
 package com.wxyj.order.controller;
 
 import com.github.pagehelper.PageInfo;
+import com.wxyj.order.config.TokenDecode;
 import com.wxyj.order.pojo.Order;
 import com.wxyj.order.service.OrderService;
 import entity.Result;
@@ -97,6 +98,9 @@ public class OrderController {
      */
     @PostMapping
     public Result add(@RequestBody Order order){
+        //获取当前用户名
+        String username = TokenDecode.getUserInfo().get("username");
+        order.setUsername(username);
         //调用OrderService实现添加Order
         orderService.add(order);
         return new Result(true,StatusCode.OK,"添加成功");

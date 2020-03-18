@@ -35,6 +35,7 @@
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
 
+        <!--微信支付-->
         <dependency>
             <groupId>com.github.wxpay</groupId>
             <artifactId>wxpay-sdk</artifactId>
@@ -46,7 +47,11 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
         </dependency>
+
+
     </dependencies>
+
+
 
 
 </project>

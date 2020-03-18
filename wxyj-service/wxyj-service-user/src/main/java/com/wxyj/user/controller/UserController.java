@@ -3,6 +3,7 @@ package com.wxyj.user.controller;
 import com.alibaba.fastjson.JSON;
 
 import com.github.pagehelper.PageInfo;
+import com.wxyj.user.config.TokenDecode;
 import com.wxyj.user.pojo.User;
 import com.wxyj.user.service.UserService;
 import entity.BCrypt;
@@ -182,10 +183,19 @@ public class UserController {
             return new Result<User>(false, StatusCode.LOGINERROR, "用户名或密码错误");
         }
 
+    }
 
-
-
-
+    /**
+     *
+     * @param points
+     * @return
+     */
+    @GetMapping(value = "/points/add")
+    public Result addPoints(Integer points){
+        String username = TokenDecode.getUserInfo().get("username");
+        //调用Service增加积分
+        userService.addPoints(username,points);
+        return new Result(true,StatusCode.OK,"添加积分成功");
 
     }
 }

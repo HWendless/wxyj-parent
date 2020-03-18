@@ -4,6 +4,7 @@ import com.github.pagehelper.PageInfo;
 import com.wxyj.goods.pojo.Sku;
 
 import java.util.List;
+import java.util.Map;
 
 /****
  * @Author:admin
@@ -71,4 +72,10 @@ public interface SkuService {
      * @return
      */
     List<Sku> findAll();
+
+    /**
+     * 商品库存递减
+     * @param decrmap
+     */
+    void decrCount(Map<String,Integer>decrmap);
 }

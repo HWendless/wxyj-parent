@@ -11,6 +11,7 @@ import org.springframework.util.StringUtils;
 import tk.mybatis.mapper.entity.Example;
 
 import java.util.List;
+import java.util.Map;
 
 /****
  * @Author:admin
@@ -216,5 +217,23 @@ public class SkuServiceImpl implements SkuService {
     @Override
     public List<Sku> findAll() {
         return skuMapper.selectAll();
+    }
+
+    @Override
+    public void decrCount(Map<String, Integer> decrmap) {
+        for(Map.Entry<String,Integer> entry : decrmap.entrySet()){
+            //商品
+            Long id = Long.valueOf(entry.getKey());
+            //递减数据
+            Integer num = Integer.valueOf(entry.getValue());
+
+            //采用行级锁控制超卖  update tb_sku set num = num-#{num} where id = #{id} and num>=# {num}
+            //                    数据库中每条记录都拥有行级锁 ，此时只能一个事物修改该记录，只有等该事物结束后，其他事物才能修改该记录
+           int count = skuMapper.decrCount(id,num);
+            if(count<=0)
+            {
+                throw new RuntimeException("库存不足");
+            }
+        }
     }
 }
