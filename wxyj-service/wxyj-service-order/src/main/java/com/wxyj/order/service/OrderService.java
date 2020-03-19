@@ -3,6 +3,7 @@ package com.wxyj.order.service;
 import com.github.pagehelper.PageInfo;
 import com.wxyj.order.pojo.Order;
 
+import java.text.ParseException;
 import java.util.List;
 
 /****
@@ -12,6 +13,22 @@ import java.util.List;
  *****/
 public interface OrderService {
 
+    /***
+     * 删除订单操作
+     * @param outtradeno
+     */
+    void deleteOrder(String outtradeno);
+
+
+    /**
+     *  修改订单状态
+     * 1.修改支付时间
+     * 2.修改支付状态
+     * @param outtradeno
+     * @param paytime
+     * @param transactionid
+     */
+    void upadataStatus(String outtradeno,String paytime,String transactionid) throws ParseException;
     /***
      * Order多条件分页查询
      * @param order

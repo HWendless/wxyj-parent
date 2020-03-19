@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import tk.mybatis.mapper.entity.Example;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /****
@@ -48,10 +50,48 @@ public class OrderServiceImpl implements OrderService {
     private UserFeign userFeign;
 
     /***
+     * 订单的删除操作
+     */
+    @Override
+    public void deleteOrder(String outtradeno) {
+        //改状态
+        Order order = (Order) redisTemplate.boundHashOps("Order").get(outtradeno);
+        order.setUpdateTime(new Date());
+        order.setPayStatus("2");    //支付失败
+        orderMapper.updateByPrimaryKeySelective(order);
+
+        //删除缓存
+        redisTemplate.boundHashOps("Order").delete(outtradeno);
+
+        //回滚库存-》调用goods微服务
+
+    }
+
+    @Override
+    public void upadataStatus(String outtradeno, String paytime, String transactionid) throws ParseException {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+        Date payTimeInfo = simpleDateFormat.parse(paytime);
+
+        //查询订单
+        Order order = orderMapper.selectByPrimaryKey(outtradeno);
+        //修改订单信息
+        order.setPayTime(payTimeInfo);
+        order.setPayStatus("1");//支付状态
+        order.setTransactionId(transactionid);//交易流水号
+        //修改到数据库中
+        orderMapper.updateByPrimaryKeySelective(order);
+
+    }
+
+    /***
      * 添加订单
-     * @param order
+     * @param
      * @return
      */
+
+
+
+
     @Override
     public void add(Order order) {
         //查询出用户的所有购物车
@@ -117,8 +157,6 @@ public class OrderServiceImpl implements OrderService {
 
 //        return count;
     }
-
-
 
 
 
