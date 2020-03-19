@@ -11,6 +11,10 @@ import com.wxyj.order.service.CartService;
 import com.wxyj.order.service.OrderService;
 import com.wxyj.user.feign.UserFeign;
 import entity.IdWorker;
+import org.springframework.amqp.AmqpException;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessagePostProcessor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -48,6 +52,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private UserFeign userFeign;
+
+    @Autowired
+
+    private RabbitTemplate rabbitTemplate;
 
     /***
      * 订单的删除操作
@@ -151,6 +159,17 @@ public class OrderServiceImpl implements OrderService {
 
         //用户添加积分活跃度加1
         userFeign.addPoints(1);
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        System.out.println("发送当前时间:"+simpleDateFormat.format(new Date()));
+        //添加订单
+        rabbitTemplate.convertAndSend("orderDelayQueue", (Object) order.getId(), new MessagePostProcessor() {
+            @Override
+            public Message postProcessMessage(Message message) throws AmqpException {
+                message.getMessageProperties().setExpiration("10000");
+                return message;
+            }
+        });
 
 
 
