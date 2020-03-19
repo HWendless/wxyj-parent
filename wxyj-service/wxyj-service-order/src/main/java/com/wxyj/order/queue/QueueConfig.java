@@ -12,17 +12,18 @@ public class QueueConfig {
     //@Bean中的name属性如果不写默认是方法名
     @Bean
     public Queue orderDelayQueue(){
-        return  new Queue("orderDelayMessage",true);
+
+        return QueueBuilder.durable("orderDelayQueue")
+                .withArgument("x-dead-letter-exchange", "orderListenerExchange") // 消息超时进入死信队列，绑定死信队列交换机
+                .withArgument("x-dead-letter-routing-key", "orderListenerQueue")   // 绑定指定的routing-key
+                .build();
     }
     /**
      * 创建Queue2
      */
     @Bean
     public Queue orderListenerQueue(){
-        return QueueBuilder.durable("orderListenerQueue")
-            .withArgument("x-dead-letter-exchange", "orderListenerExchange") // 消息超时进入死信队列，绑定死信队列交换机
-            .withArgument("x-dead-letter-routing-key", "orderListenerQueue")   // 绑定指定的routing-key
-            .build();
+        return  new Queue("orderListenerQueue",true);
     }
 
     /**
