@@ -22,6 +22,7 @@
         <module>wxyj-service-search-api</module>
         <module>wxyj-service-user-api</module>
         <module>wxyj-service-order-api</module>
+        <module>wxyj-service-seckill-api</module>
     </modules>
 
     <dependencies>

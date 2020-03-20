@@ -25,6 +25,7 @@
         <module>wxyj-service-user</module>
         <module>wxyj-service-order</module>
         <module>wxyj-service-pay</module>
+        <module>wxyj-service-seckill</module>
     </modules>
 
     <dependencies>
