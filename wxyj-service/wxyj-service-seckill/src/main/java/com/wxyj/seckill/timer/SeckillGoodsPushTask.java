@@ -26,7 +26,7 @@ public class SeckillGoodsPushTask {
         /****
          * 每30秒执行一次
          */
-        @Scheduled(cron = "0/5 * * * * ?")
+//        @Scheduled(cron = "0/5 * * * * ?")
         public void loadGoodsPushRedis() {
             System.out.println("dfsaaaaaaaaaaaaaaa");
             //获取时间段集合

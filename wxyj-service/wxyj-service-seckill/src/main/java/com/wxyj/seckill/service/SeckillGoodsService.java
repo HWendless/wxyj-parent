@@ -1,6 +1,9 @@
 package com.wxyj.seckill.service;
-import com.wxyj.seckill.pojo.SeckillGoods;
+
 import com.github.pagehelper.PageInfo;
+import com.wxyj.seckill.pojo.SeckillGoods;
+import entity.SeckillStatus;
+
 import java.util.List;
 /****
  * @Author:admin
@@ -8,6 +11,17 @@ import java.util.List;
  * @Date 2019/6/14 0:16
  *****/
 public interface SeckillGoodsService {
+
+
+
+    /***
+     * 添加秒杀订单
+     * @param id:商品ID
+     * @param time:商品秒杀开始时间
+     * @param username:用户登录名
+     * @return
+     */
+    Boolean add(Long id, String time, String username);
 
     /***
      * SeckillGoods多条件分页查询

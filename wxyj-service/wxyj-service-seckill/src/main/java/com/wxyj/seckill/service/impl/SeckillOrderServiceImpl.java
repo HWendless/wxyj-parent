@@ -1,13 +1,17 @@
 package com.wxyj.seckill.service.impl;
+
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.wxyj.seckill.dao.SeckillOrderMapper;
 import com.wxyj.seckill.pojo.SeckillOrder;
 import com.wxyj.seckill.service.SeckillOrderService;
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
+import entity.SeckillStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import tk.mybatis.mapper.entity.Example;
+
 import java.util.List;
 /****
  * @Author:admin
@@ -19,6 +23,19 @@ public class SeckillOrderServiceImpl implements SeckillOrderService {
 
     @Autowired
     private SeckillOrderMapper seckillOrderMapper;
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+
+    /***
+     * 抢单状态查询
+     * @param username
+     * @return
+     */
+    @Override
+    public SeckillStatus queryStatus(String username) {
+        return (SeckillStatus) redisTemplate.boundHashOps("UserQueueStatus").get(username);
+    }
 
 
     /**

@@ -1,14 +1,20 @@
 package com.wxyj.seckill.service.impl;
+
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.wxyj.seckill.dao.SeckillGoodsMapper;
 import com.wxyj.seckill.pojo.SeckillGoods;
 import com.wxyj.seckill.service.SeckillGoodsService;
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
+import com.wxyj.seckill.task.MultiThreadingCreateOrder;
+import entity.IdWorker;
+import entity.SeckillStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import tk.mybatis.mapper.entity.Example;
+
+import java.util.Date;
 import java.util.List;
 /****
  * @Author:admin
@@ -24,6 +30,33 @@ public class SeckillGoodsServiceImpl implements SeckillGoodsService {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    @Autowired
+    private IdWorker idWorker;
+
+    @Autowired
+    private MultiThreadingCreateOrder multiThreadingCreateOrder;
+
+
+
+    /****
+     * 添加订单
+     * @param id
+     * @param time
+     * @param username
+     */
+    @Override
+    public Boolean add(Long id, String time, String username){
+        //排队信息封装
+        SeckillStatus seckillStatus = new SeckillStatus(username, new Date(),1, id,time);
+
+        //将秒杀抢单信息存入到Redis中,这里采用List方式存储,List本身是一个队列
+        redisTemplate.boundListOps("SeckillOrderQueue").leftPush(seckillStatus);
+        //将抢单状态存入到Redis中
+        redisTemplate.boundHashOps("UserQueueStatus").put(username,seckillStatus);
+        //多线程操作
+        multiThreadingCreateOrder.createOrder();
+        return true;
+    }
 
     /**
      * SeckillGoods条件+分页查询

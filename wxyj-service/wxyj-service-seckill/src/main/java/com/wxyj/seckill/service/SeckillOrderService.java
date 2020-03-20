@@ -1,6 +1,9 @@
 package com.wxyj.seckill.service;
-import com.wxyj.seckill.pojo.SeckillOrder;
+
 import com.github.pagehelper.PageInfo;
+import com.wxyj.seckill.pojo.SeckillOrder;
+import entity.SeckillStatus;
+
 import java.util.List;
 /****
  * @Author:admin
@@ -8,6 +11,12 @@ import java.util.List;
  * @Date 2019/6/14 0:16
  *****/
 public interface SeckillOrderService {
+
+    /***
+     * 抢单状态查询
+     * @param username
+     */
+    SeckillStatus queryStatus(String username);
 
     /***
      * SeckillOrder多条件分页查询

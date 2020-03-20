@@ -1,11 +1,15 @@
 package com.wxyj.seckill.controller;
+
+import com.github.pagehelper.PageInfo;
+import com.wxyj.seckill.config.TokenDecode;
 import com.wxyj.seckill.pojo.SeckillGoods;
 import com.wxyj.seckill.service.SeckillGoodsService;
-import com.github.pagehelper.PageInfo;
+import com.wxyj.seckill.service.SeckillOrderService;
+import com.wxyj.seckill.task.MultiThreadingCreateOrder;
 import entity.DateUtil;
 import entity.Result;
+import entity.SeckillStatus;
 import entity.StatusCode;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +29,40 @@ public class SeckillGoodsController {
 
     @Autowired
     private SeckillGoodsService seckillGoodsService;
+
+    @Autowired
+    MultiThreadingCreateOrder multiThreadingCreateOrder;
+    @Autowired
+    SeckillOrderService seckillOrderService;
+
+
+
+    /****
+     * 查询抢购
+     * @return
+     */
+    @RequestMapping(value = "/query")
+    public Result queryStatus(String queryStatus){
+        //获取用户名
+        String username = TokenDecode.getUserInfo().get("username");
+
+        //根据用户名查询用户抢购状态
+        SeckillStatus seckillStatus = seckillOrderService.queryStatus(username);
+
+        if(seckillStatus!=null){
+            return new Result(true,seckillStatus.getStatus(),"抢购状态");
+        }
+        //NOTFOUNDERROR =20006,没有对应的抢购数据
+        return new Result(false,StatusCode.NOTFOUNDERROR,"没有抢购信息");
+    }
+//    @RequestMapping(value = "/test")
+//    public  void testThread(){
+//        multiThreadingCreateOrder.createOrder();;
+//        System.out.println("我都不会等你");
+//        System.out.println("我执行完了");
+//        //调用Service查询商品详情
+//
+//    }
 
     /****
      * URL:/seckill/goods/one
