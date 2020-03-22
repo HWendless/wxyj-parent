@@ -33,8 +33,13 @@ public class MultiThreadingCreateOrder {
         //从队列中获取排队信息
         SeckillStatus seckillStatus = (SeckillStatus) redisTemplate.boundListOps("SeckillOrderQueue").rightPop();
 
-            if(seckillStatus==null) {
-                return ;
+        try {
+            //从队列中获取一个商品
+            Object sgood = redisTemplate.boundListOps("SeckillGoodsCountList_" + seckillStatus.getGoodsId()).rightPop();
+            if(sgood==null){
+                //清理当前用户的排队信息
+                clearQueue(seckillStatus);
+                return;
             }
                 //时间区间
                 String time = seckillStatus.getTime();
@@ -45,10 +50,6 @@ public class MultiThreadingCreateOrder {
             //获取商品数据
             SeckillGoods goods = (SeckillGoods) redisTemplate.boundHashOps("SeckillGoods_" + time).get(id);
 
-            //如果没有库存，则直接抛出异常
-            if(goods==null || goods.getStockCount()<=0){
-                throw new RuntimeException("已售罄!");
-            }
             //如果有库存，则创建秒杀商品订单
             SeckillOrder seckillOrder = new SeckillOrder();
             seckillOrder.setId(idWorker.nextId());
@@ -61,11 +62,12 @@ public class MultiThreadingCreateOrder {
             //将秒杀订单存入到Redis中
             redisTemplate.boundHashOps("SeckillOrder").put(username,seckillOrder);
 
-            //库存减少
-            goods.setStockCount(goods.getStockCount()-1);
+            //商品库存-1
+            Long surplusCount = redisTemplate.boundHashOps("SeckillGoodsCount").increment(id, -1);//商品数量递减
+            goods.setStockCount(surplusCount.intValue());    //根据计数器统计
 
             //判断当前商品是否还有库存
-            if(goods.getStockCount()<=0){
+            if(surplusCount<=0){
                 //并且将商品数据同步到MySQL中
                 seckillGoodsMapper.updateByPrimaryKeySelective(goods);
                 //如果没有库存,则清空Redis缓存中该商品
@@ -80,8 +82,23 @@ public class MultiThreadingCreateOrder {
         seckillStatus.setOrderId(seckillOrder.getId());
         seckillStatus.setMoney(Float.valueOf(seckillOrder.getMoney() )); //支付金额
         redisTemplate.boundHashOps("UserQueueStatus").put(username,seckillStatus);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 //            return true;
 
 
+    }
+
+    /***
+     * 清理用户排队信息
+     * @param seckillStatus
+     */
+    public  void clearQueue(SeckillStatus seckillStatus){
+        //清理排队标示
+        redisTemplate.boundHashOps("UserQueueCount").delete(seckillStatus.getUsername());
+
+        //清理抢单标示
+        redisTemplate.boundHashOps("UserQueueStatus").delete(seckillStatus.getUsername());
     }
 }

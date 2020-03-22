@@ -50,7 +50,7 @@ public class SeckillGoodsController {
         SeckillStatus seckillStatus = seckillOrderService.queryStatus(username);
 
         if(seckillStatus!=null){
-            return new Result(true,seckillStatus.getStatus(),"抢购状态");
+            return new Result(true,seckillStatus.getStatus(),"抢购状态",seckillStatus);
         }
         //NOTFOUNDERROR =20006,没有对应的抢购数据
         return new Result(false,StatusCode.NOTFOUNDERROR,"没有抢购信息");
