@@ -30,7 +30,7 @@
     <properties>
         <skipTests>true</skipTests>
         <lombok.version>1.16.10</lombok.version>
-        <swagger.version>2.9.2</swagger.version>
+        <swagger.version>2.10.0</swagger.version>
     </properties>
 
     <!--依赖包-->
